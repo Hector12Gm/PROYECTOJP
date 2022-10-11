@@ -6,6 +6,13 @@ import matplotlib.pyplot as plt
 import trajectory as tj
 import math as m
 
+def angdiff(t1, t2):
+    # The angle magnitude comes from the dot product of two vectors
+    angmag = m.acos(m.cos(t1)*m.cos(t2)+m.sin(t1)*m.sin(t2))
+    # The direction of rotation comes from the sign of the cross product of two vectors
+    angdir = m.cos(t1)*m.sin(t2)-m.sin(t1)*m.cos(t2)
+    return m.copysign(angmag, angdir)
+
 sim.simxFinish(-1) #Finaliza la ejecucion 
 client_id = sim.simxStart('127.0.0.1',-1,True,True,5000,5)
 
@@ -17,14 +24,15 @@ else:
 
 err, motor_l = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_leftMotor', sim.simx_opmode_blocking)
 err, motor_r = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_rightMotor', sim.simx_opmode_blocking)
-err, robot = sim.simxGetObjectHandle(client_id, 'Robot', sim.simx_opmode_blocking)
+err, robot = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx', sim.simx_opmode_blocking)
+
 
 Kv = 1
 Kh = 2.5
 
 # xd and yd are the coordinates of the desired setpoint
-xd = 3
-yd = 3
+#xd = 3
+#yd = 3
 
 xt = []
 yt = []
@@ -38,6 +46,7 @@ xarr = np.array([0,0.5,1,2.5,3, 3, 3,3,2.5,0.5,0, 0,0, 0,0])
 yarr = np.array([0, 0,0, 0,0,0.5,2.5,3, 3, 3,3,2.5,1,0.5,0])
 
 plt.scatter(xarr,yarr)
+ts = time.time()
 t = time.time()
 
 while (time.time()-t)  < 71.5:
