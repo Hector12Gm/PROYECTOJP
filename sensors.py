@@ -27,3 +27,7 @@ def ref_world(srot,spos,cpos,crot,uread,point):
     pc = R.dot(ps) + spos
     pw = np.dot( q2R(crot[0],crot[1],crot[2]),pc) + cpos
     return pw
+
+
+
+

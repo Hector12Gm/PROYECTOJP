@@ -13,7 +13,7 @@ if client_id != -1:
     print('Connection done')
 else:
     print('Not connection')
-    sys.exit('Error,cant not connect to the simulator')
+    sys.exit('Error, cant not connect to the simulator')
 
 err, motor_l = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_leftMotor', sim.simx_opmode_blocking)
 err, motor_r = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_rightMotor', sim.simx_opmode_blocking)
@@ -34,8 +34,9 @@ r = 0.5*0.195
 L = 0.311
 errp = 10
 
-xarr = np.random.randint(0,4,10)
-yarr = np.random.randint(0,4,10)
+xarr = np.array([0,0.5,1,2.5,3, 3, 3,3,2.5,0.5,0, 0,0, 0,0])
+yarr = np.array([0, 0,0, 0,0,0.5,2.5,3, 3, 3,3,2.5,1,0.5,0])
+
 plt.scatter(xarr,yarr)
 t = time.time()
 
