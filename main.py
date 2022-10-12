@@ -1,3 +1,4 @@
+from queue import Empty
 import numpy as np 
 import time 
 import sys
@@ -6,12 +7,6 @@ import matplotlib.pyplot as plt
 import trajectory as tj
 import math as m
 
-def angdiff(t1, t2):
-    # The angle magnitude comes from the dot product of two vectors
-    angmag = m.acos(m.cos(t1)*m.cos(t2)+m.sin(t1)*m.sin(t2))
-    # The direction of rotation comes from the sign of the cross product of two vectors
-    angdir = m.cos(t1)*m.sin(t2)-m.sin(t1)*m.cos(t2)
-    return m.copysign(angmag, angdir)
 
 sim.simxFinish(-1) #Finaliza la ejecucion 
 client_id = sim.simxStart('127.0.0.1',-1,True,True,5000,5)
@@ -22,10 +17,28 @@ else:
     print('Not connection')
     sys.exit('Error, cant not connect to the simulator')
 
-err, motor_l = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_leftMotor', sim.simx_opmode_blocking)
-err, motor_r = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_rightMotor', sim.simx_opmode_blocking)
-err, robot = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx', sim.simx_opmode_blocking)
+err, motor_l = sim.simxGetObjectHandle(client_id, '/PioneerP3DX/leftMotor', sim.simx_opmode_blocking)
+err, motor_r = sim.simxGetObjectHandle(client_id, '/PioneerP3DX/rightMotor', sim.simx_opmode_blocking)
+err, robot = sim.simxGetObjectHandle(client_id, '/PioneerP3DX', sim.simx_opmode_blocking)
 
+# Assigning handles to the ultrasonic sensors
+usensor = []
+for i in range(1,17):
+    err, s = sim.simxGetObjectHandle(client_id, 'Pioneer_p3dx_ultrasonicSensor'+str(i), sim.simx_opmode_blocking)
+    usensor.append(s)
+
+# Sensor initialization
+for i in range(16):
+    err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(client_id, usensor[i], sim.simx_opmode_streaming)
+
+ret, carpos = sim.simxGetObjectPosition(client_id, robot, -1, sim.simx_opmode_streaming)
+ret, carrot = sim.simxGetObjectOrientation(client_id, robot, -1, sim.simx_opmode_streaming)
+
+noDetectionDist = 0.5
+maxDetectionDist = 0.2
+detect = np.zeros(16)
+braitenbergL=[-0.2,-0.4,-0.6,-0.8,-1,-1.2,-1.4,-1.6, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+braitenbergR=[-1.6,-1.4,-1.2,-1,-0.8,-0.6,-0.4,-0.2, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
 
 Kv = 1
 Kh = 2.5
@@ -53,6 +66,28 @@ while (time.time()-t)  < 71.5:
    
     ts = time.time()
 
+    for i in range (16):
+        err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(client_id, usensor[i], sim.simx_opmode_streaming)
+        dist = np.linalg.norm(point) 
+        if state and dist<noDetectionDist:
+            if dist<maxDetectionDist:
+                dist=maxDetectionDist
+            detect[i]=1-((dist-maxDetectionDist)/(noDetectionDist-maxDetectionDist))
+        else:
+            detect[i]=0
+    
+    vLeft=2
+    vRight=2
+    
+    for i in range (16):
+        vLeft=vLeft+braitenbergL[i]*detect[i]
+        vRight=vRight+braitenbergR[i]*detect[i]
+
+    
+        errf = sim.simxSetJointTargetVelocity(client_id, motor_l, vLeft, sim.simx_opmode_streaming)
+        errf = sim.simxSetJointTargetVelocity(client_id, motor_r, vRight, sim.simx_opmode_streaming)
+
+"""
     tau = ts  -  t
     ret, carpos = sim.simxGetObjectPosition(client_id, robot, -1, sim.simx_opmode_blocking)
     ret, carrot = sim.simxGetObjectOrientation(client_id, robot, -1, sim.simx_opmode_blocking)
@@ -84,6 +119,6 @@ plt.show()
 for i in range(10):
     errf = sim.simxSetJointTargetVelocity(client_id, motor_l, 0, sim.simx_opmode_streaming)
     errf = sim.simxSetJointTargetVelocity(client_id, motor_r, 0, sim.simx_opmode_streaming)
-    #time.sleep(0.1)
+    #time.sleep(0.1)"""
     
 sim.simxStopSimulation(client_id, sim.simx_opmode_oneshot)
