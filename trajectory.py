@@ -11,8 +11,6 @@ import matplotlib.pyplot as plt
 import time
 
 
-
-
 xt = []
 yt = []
 
@@ -63,8 +61,8 @@ def new_points(X):
 
     return np.array(x_new)
 
-xarr = new_points(xarr)
-yarr = new_points(yarr)
+#xarr = new_points(xarr)
+#yarr = new_points(yarr)
 
 
 def angdiff(t1, t2):
