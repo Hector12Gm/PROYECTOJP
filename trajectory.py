@@ -4,8 +4,34 @@ import numpy as  np
 import scipy.interpolate as spi
 import math as m
 
+def create_neighbor(x,r,n):
+
+    increment = r / n
+
+    x_new = []
+    
+    i = n 
+    while i >= 0:
+        x_new.append( x - increment * i)
+        i -= 1
+
+    i = 1
+    while i < n +1:
+        x_new.append(x + increment * i)
+        i += 1
+    return x_new
 
 
+def new_points(X):
+    x_new = []
+
+    for x in X:
+        inter_x = create_neighbor(x,5,5)
+        for i_x in inter_x:
+            x_new.append(i_x)
+
+    return x_new
+        
 def interp(tiempo,x,y):
     ttime =  70
     tarr = np.linspace(0, ttime, x.shape[0])
