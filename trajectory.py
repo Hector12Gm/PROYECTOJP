@@ -1,4 +1,5 @@
 
+from hashlib import new
 from queue import Empty
 from matplotlib.pyplot import sci
 import numpy as  np
@@ -26,10 +27,44 @@ r = 0.5*0.195
 L = 0.311
 errp = 10
 
-xarr = np.array([0,0.5,1,2.5,3, 3, 3,3,2.5,0.5,0, 0,0, 0,0])
-yarr = np.array([0, 0,0, 0,0,0.5,2.5,3, 3, 3,3,2.5,1,0.5,0])
+#xarr = np.array([0,0.5,1,2.5,3, 3, 3,3,2.5,0.5,0, 0,0, 0,0])
+#yarr = np.array([0, 0,0, 0,0,0.5,2.5,3, 3, 3,3,2.5,1,0.5,0])
+
+xarr = np.random.randint(0,5,10)
+yarr = np.random.randint(0,5,10)
 
 plt.scatter(xarr,yarr)
+
+def create_neighbor(x,r,n):
+
+    increment = r / n
+
+    x_new = []
+    
+    i = n 
+    while i >= 0:
+        x_new.append( x - increment * i)
+        i -= 1
+
+    i = 1
+    while i < n +1:
+        x_new.append(x + increment * i)
+        i += 1
+    return np.array(x_new)
+
+
+def new_points(X):
+    x_new = []
+
+    for x in X:
+        inter_x = create_neighbor(x,5,5)
+        for i_x in inter_x:
+            x_new.append(i_x)
+
+    return np.array(x_new)
+
+xarr = new_points(xarr)
+yarr = new_points(yarr)
 
 
 def angdiff(t1, t2):
