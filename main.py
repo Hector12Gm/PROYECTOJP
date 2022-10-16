@@ -1,4 +1,5 @@
 
+from queue import Empty
 import sim     
 import time
 import math
@@ -7,44 +8,33 @@ import matplotlib.pyplot as mpl
 import math as m
 import numpy as np
 import scipy.interpolate as spi
-         
+import trajectory as Traject
+
 t = time.time()
-Kv = 1
-Kh = 2.5
+Kv = 0.3 # 1    0.3
+Kh = 0.5 # 2.5  0.5
 r = 0.5*0.195
 L = 0.311
-errp = 1000
-
-END = 70.5
-
-# Trayectoria de Cuadrado Pequeño origen - Tiempo = 70.5 s
-#xarr = np.array([0, 0.5,1,2.5,  3,  3,  3, 3, 2.5 ,0.5,0, 0,0, 0,0])
-#yarr = np.array([0, 0,0,0,      0,  0.5, 2.5, 3, 3, 3,3,2.5,1,0.5,0])
-
-# Trayectoria de Cuadrado Pequeño - Tiempo = 70.5 s
-xarr = np.array([  -4,  -3.5,  -2.5,  -2,    -2,     -2,  -2,  -2.5,  -3.5,  -4,    -4,    -4,   -4])
-yarr = np.array([  -4,    -4,    -4,  -4,  -3.5,   -2.5,  -2,    -2,    -2,  -2,  -2.5,  -3.5,   -4])
-
-# Trayectoria  Cuadrado Grande - Tiempo = 350 s
-#xarr = np.array([  -4,  -3.5,    -1,     1,   3.5,     4,     4,   4,   4,    4,   2.5,   -1,   -3,    -4,  -4, -4,  -4,  -4,    -4])
-#yarr = np.array([-5.5,  -5.5,  -5.5,  -5.5,  -5.5,  -5.5,  -4.5,  -2,   2,  5.5,   5.5,  5.5,  5.5,   5.5,   4,  1,  -1,  -4,  -5.5])
-
-# Trayectoria Diagonal - Tiempo = 35 s
-#xarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
-#yarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
-
-
-#mpl.scatter(xarr,yarr)
-#mpl.show()
-
-xt = []
-yt = [] 
-
 noDetectionDist = 0.5
 maxDetectionDist = 0.2
 detect = np.zeros(16)
 braitenbergL=[-0.2,-0.4,-0.6,-0.8,-1,-1.2,-1.4,-1.6, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
 braitenbergR=[-1.6,-1.4,-1.2,-1,-0.8,-0.6,-0.4,-0.2, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+xt = []
+yt = [] 
+
+#Tiempo
+END = 300
+
+"""Seleccion de trayectoria"""
+xarr, yarr = Traject.TrajectoryRandom(END) # T = 300
+#xarr, yarr = Traject.square()    # T = 80
+#xarr, yarr = Traject.SQUARE()    # T = 350
+#xarr, yarr = Traject.Diagonal()  # T = 50
+
+# Imprimimos la trayectoria random a seguir
+mpl.scatter(xarr,yarr)
+mpl.show()
 
 class Robot():
 
@@ -88,9 +78,9 @@ class Robot():
         return m.copysign(angmag, angdir)
 
     def interp(self, tiempo,x,y):
+
         ttime =  END
         tarr = np.linspace(0, ttime, x.shape[0])
-        #TIempo  
         xc = spi.splrep(tarr, x, s=0)
         yc = spi.splrep(tarr, y, s=0)
 
