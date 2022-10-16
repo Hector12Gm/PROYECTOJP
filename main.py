@@ -27,12 +27,12 @@ yt = []
 END = 300
 
 """Seleccion de trayectoria"""
-xarr, yarr = Traject.TrajectoryRandom(END) # T = 300
+xarr, yarr = Traject.Random(END) # T = 300
 #xarr, yarr = Traject.square()    # T = 80
 #xarr, yarr = Traject.SQUARE()    # T = 350
 #xarr, yarr = Traject.Diagonal()  # T = 50
 
-# Imprimimos la trayectoria random a seguir
+# Imprimimos la trayectoria a seguir
 mpl.scatter(xarr,yarr)
 mpl.show()
 
@@ -55,9 +55,9 @@ class Robot():
         for i in range(16):
            err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_streaming)
 
-    def getDistanceReading(self, objectHandle):
+    def getDistanceReading(self, i):
         # Obtenemos la lectura del sensor
-        err,State,Point,detectedObj,detectedSurfaceNormalVector = sim.simxReadProximitySensor(clientID,objectHandle,sim.simx_opmode_buffer)
+        err, State, Point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_buffer)
 
         if State == 1:
             # retornamos la magnitud del punto detectado
@@ -155,7 +155,7 @@ if clientID!=-1:
     # Maquina de estados
     while True:
         for i in range (16):
-            while robot.getDistanceReading(robot.usensor[i]) <= 1: # Comprobamos si algun sensor detecta un objeto
+            while robot.getDistanceReading(i) <= 1: # Comprobamos si algun sensor detecta un objeto
                 vl, vr = robot.Braitenberg() # Obtenemos la velocidad necesaria para evadir el objeto
                 robot.Velocity(vl,vr)
                 print ("Evadiendo obstaculo")
