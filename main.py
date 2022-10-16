@@ -1,54 +1,199 @@
-from queue import Empty
-import numpy as np 
-import time 
+
+import sim     
+import time
+import math
 import sys
-import sensors as sens
-import sim 
-import matplotlib.pyplot as plt
-import trajectory as traject
+import matplotlib.pyplot as mpl   
 import math as m
-
-
-sim.simxFinish(-1) #Finaliza la ejecucion 
-client_id = sim.simxStart('127.0.0.1',-1,True,True,5000,5)
-
-if client_id != -1:
-    print('Connection done')
-else:
-    print('Not connection')
-    sys.exit('Error, cant not connect to the simulator')
-
-err, motor_l = sim.simxGetObjectHandle(client_id, '/PioneerP3DX/leftMotor', sim.simx_opmode_blocking)
-err, motor_r = sim.simxGetObjectHandle(client_id, '/PioneerP3DX/rightMotor', sim.simx_opmode_blocking)
-err, robot = sim.simxGetObjectHandle(client_id, '/PioneerP3DX', sim.simx_opmode_blocking)
-
-
-ts = time.time()
+import numpy as np
+import scipy.interpolate as spi
+         
 t = time.time()
+Kv = 1
+Kh = 2.5
+r = 0.5*0.195
+L = 0.311
+errp = 1000
+
+END = 70.5
+
+# Trayectoria de Cuadrado Pequeño origen - Tiempo = 70.5 s
+#xarr = np.array([0, 0.5,1,2.5,  3,  3,  3, 3, 2.5 ,0.5,0, 0,0, 0,0])
+#yarr = np.array([0, 0,0,0,      0,  0.5, 2.5, 3, 3, 3,3,2.5,1,0.5,0])
+
+# Trayectoria de Cuadrado Pequeño - Tiempo = 70.5 s
+xarr = np.array([  -4,  -3.5,  -2.5,  -2,    -2,     -2,  -2,  -2.5,  -3.5,  -4,    -4,    -4,   -4])
+yarr = np.array([  -4,    -4,    -4,  -4,  -3.5,   -2.5,  -2,    -2,    -2,  -2,  -2.5,  -3.5,   -4])
+
+# Trayectoria  Cuadrado Grande - Tiempo = 350 s
+#xarr = np.array([  -4,  -3.5,    -1,     1,   3.5,     4,     4,   4,   4,    4,   2.5,   -1,   -3,    -4,  -4, -4,  -4,  -4,    -4])
+#yarr = np.array([-5.5,  -5.5,  -5.5,  -5.5,  -5.5,  -5.5,  -4.5,  -2,   2,  5.5,   5.5,  5.5,  5.5,   5.5,   4,  1,  -1,  -4,  -5.5])
+
+# Trayectoria Diagonal - Tiempo = 35 s
+#xarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
+#yarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
 
 
-while (time.time()-t)  < 71.5:
-   
-    ts = time.time()
+#mpl.scatter(xarr,yarr)
+#mpl.show()
 
-    # Algoritmo de Braitenberg
-    #for i in range (16):
-    #    vLeft, vRight = sens.Braitenberg(client_id, robot)
-    #    errf = sim.simxSetJointTargetVelocity(client_id, motor_l, vLeft, sim.simx_opmode_streaming)
-    #    errf = sim.simxSetJointTargetVelocity(client_id, motor_r, vRight, sim.simx_opmode_streaming)
+xt = []
+yt = [] 
 
-    # Seguimiento de trayectoria 
-    vLeft, vRight, xt,yt = traject.Trajectory(client_id, robot,ts,t)
-    errf = sim.simxSetJointTargetVelocity(client_id, motor_l, vLeft, sim.simx_opmode_streaming)
-    errf = sim.simxSetJointTargetVelocity(client_id, motor_r, vRight, sim.simx_opmode_streaming)
+noDetectionDist = 0.5
+maxDetectionDist = 0.2
+detect = np.zeros(16)
+braitenbergL=[-0.2,-0.4,-0.6,-0.8,-1,-1.2,-1.4,-1.6, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+braitenbergR=[-1.6,-1.4,-1.2,-1,-0.8,-0.6,-0.4,-0.2, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+
+class Robot():
+
+    def __init__(self):
+
+        # Asignamos los handles a los motores
+        err, self.motor_l = sim.simxGetObjectHandle(clientID, '/PioneerP3DX/leftMotor', sim.simx_opmode_blocking)
+        err, self.motor_r = sim.simxGetObjectHandle(clientID, '/PioneerP3DX/rightMotor', sim.simx_opmode_blocking)
+        err, self.robot = sim.simxGetObjectHandle(clientID, '/PioneerP3DX', sim.simx_opmode_blocking)
+
+        # Asignamos los handles a los sensores
+        self.usensor = []
+        for i in range(16):
+            err, s = sim.simxGetObjectHandle(clientID, 'Pioneer_p3dx_ultrasonicSensor'+str(i), sim.simx_opmode_blocking)
+            self.usensor.append(s)
+
+        # Inicializamos los sensores
+        for i in range(16):
+           err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_streaming)
+
+    def getDistanceReading(self, objectHandle):
+        # Obtenemos la lectura del sensor
+        err,State,Point,detectedObj,detectedSurfaceNormalVector = sim.simxReadProximitySensor(clientID,objectHandle,sim.simx_opmode_buffer)
+
+        if State == 1:
+            # retornamos la magnitud del punto detectado
+            return math.sqrt(sum(i**2 for i in Point))
+        else:
+            # Devuelve otro valor que sabemos que no puede ser verdadero
+            return 199999
+
+    def stop(self):
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, 0, sim.simx_opmode_blocking)
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, 0, sim.simx_opmode_blocking)
+
+    def angdiff(self, t1, t2):
+        # The angle magnitude comes from the dot product of two vectors
+        angmag = m.acos(m.cos(t1)*m.cos(t2)+m.sin(t1)*m.sin(t2))
+        # The direction of rotation comes from the sign of the cross product of two vectors
+        angdir = m.cos(t1)*m.sin(t2)-m.sin(t1)*m.cos(t2)
+        return m.copysign(angmag, angdir)
+
+    def interp(self, tiempo,x,y):
+        ttime =  END
+        tarr = np.linspace(0, ttime, x.shape[0])
+        #TIempo  
+        xc = spi.splrep(tarr, x, s=0)
+        yc = spi.splrep(tarr, y, s=0)
+
     
-plt.scatter(xt,yt)
-plt.show()
+        xnew = spi.splev(tiempo, xc, der=0)
+        ynew = spi.splev(tiempo, yc, der=0)
+
+        return {'x':xnew,'y':ynew}
+
+    def Trajectory(self):
+        ts = time.time()
+
+        ret, carpos = sim.simxGetObjectPosition(clientID, self.robot, -1, sim.simx_opmode_blocking)
+        ret, carrot = sim.simxGetObjectOrientation(clientID, self.robot, -1, sim.simx_opmode_blocking)
+
+        tau = ts - t
+
+        data = self.interp(tau,xarr,yarr)
+        xd = data['x']
+        yd = data['y']
+
+        errp = m.sqrt((xd-carpos[0])**2 + (yd-carpos[1])**2)
+        angd = m.atan2(yd-carpos[1], xd-carpos[0])
+        errh = self.angdiff(carrot[2], angd)
+
+        v = Kv*errp
+        omega = Kh*errh
+
+        ul = v/r - L*omega/(2*r)
+        ur = v/r + L*omega/(2*r)
+
+        xt.append(carpos[0])
+        yt.append(carpos[1])
+
+
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, ul, sim.simx_opmode_blocking)
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, ur, sim.simx_opmode_blocking)
         
+    def Velocity(self, leftMotorVelocity, rightMotorVelocity):
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, leftMotorVelocity, sim.simx_opmode_blocking)
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, rightMotorVelocity, sim.simx_opmode_blocking)
 
-for i in range(10):
-    errf = sim.simxSetJointTargetVelocity(client_id, motor_l, 0, sim.simx_opmode_streaming)
-    errf = sim.simxSetJointTargetVelocity(client_id, motor_r, 0, sim.simx_opmode_streaming)
-    #time.sleep(0.1)"""
+    def Braitenberg (self):
+        for i in range (16):
+            err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_buffer)
+            dist = np.linalg.norm(point) 
+            if state and dist<noDetectionDist:
+                if dist<maxDetectionDist:
+                    dist=maxDetectionDist
+                detect[i]=1-((dist-maxDetectionDist)/(noDetectionDist-maxDetectionDist))
+            else:
+                detect[i]=0
+        
+        vLeft=2
+        vRight=2
+        
+        for i in range (16):
+            vLeft=vLeft+braitenbergL[i]*detect[i]
+            vRight=vRight+braitenbergR[i]*detect[i]
+
+        return vLeft, vRight
+
+print ('Programa Iniciado')
+sim.simxFinish(-1)
+clientID=sim.simxStart('127.0.0.1',-1,True,True,5000,5) # Conexión a CoppeliaSim
+
+if clientID!=-1:
+    print ('Conectados al remote API')
     
-sim.simxStopSimulation(client_id, sim.simx_opmode_oneshot)
+    robot = Robot() 
+
+    # Maquina de estados
+    while True:
+        for i in range (16):
+            while robot.getDistanceReading(robot.usensor[i]) <= 1: # Comprobamos si algun sensor detecta un objeto
+                vl, vr = robot.Braitenberg() # Obtenemos la velocidad necesaria para evadir el objeto
+                robot.Velocity(vl,vr)
+                print ("Evadiendo obstaculo")
+        robot.Trajectory() # El robot seguira la trayectoria hasta encontrar un objeto
+        print ("Siguiendo Trayectoria")
+             
+        if (time.time()-t) > END: # Tiempo en el que debe terminar la trayectoria
+            robot.stop() # Detenemos nuestro robot
+            mpl.scatter(xt,yt)
+            mpl.show()
+            
+            break
+
+    
+    sim.simxGetPingTime(clientID) # Desconectamos del Remote Api para finalizar el programa
+    sim.simxFinish(clientID)
+else:
+    print ('Conexion fallida a remote API server')
+print ('Fin del programa')
+sys.exit('Sin conexion')
+
+
+
+
+
+
+
+
+
+
+
