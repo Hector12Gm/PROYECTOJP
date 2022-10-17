@@ -12,6 +12,12 @@ def Random(END):    #TrayectoriaRandom - Tiempo 300
     xarr = np.random.randint(-5, 5, 10)
     yarr = np.random.randint(-5, 5, 10)
 
+    xarr = np.insert(xarr, (0), [-4.7])
+    yarr = np.insert(yarr, (0), [-5.65])
+
+    xarrOrig = xarr
+    yarrOrig = yarr
+
     ttime = END
     tarr = np.linspace(0, 10, xarr.shape[0])
     
@@ -21,7 +27,7 @@ def Random(END):    #TrayectoriaRandom - Tiempo 300
 
     xnew = spi.splev(tnew, xc, der=0)
     ynew = spi.splev(tnew, yc, der=0)
-    return xnew, ynew, xarr, yarr
+    return xnew, ynew, xarrOrig, yarrOrig
 
 def squareORIGIN():
 
@@ -54,3 +60,6 @@ def Diagonal():
     xarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
     yarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
     return xarr, yarr
+
+
+Random(300)

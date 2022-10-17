@@ -24,20 +24,17 @@ xt = []
 yt = [] 
 
 #Tiempo
-END = 300
+END = 400
 
 """Seleccion de trayectoria"""
-xarr, yarr, oxarr, oyarr = Traject.Random(END)  # T = 300
-#xarr, yarr = Traject.square()    # T = 80
-#xarr, yarr = Traject.SQUARE()    # T = 350
-#xarr, yarr = Traject.Diagonal()  # T = 50
-
-# Imprimimos la trayectoria sin interpolar los puntos
-mpl.scatter(oxarr,oyarr)
-mpl.show()
+xarr, yarr, xorg, yorg = Traject.Random(END)  # T = 400
+#xarr, yarr = Traject.square()                # T = 80
+#xarr, yarr = Traject.SQUARE()                # T = 350
+#xarr, yarr = Traject.Diagonal()              # T = 50
 
 # Imprimimos la trayectoria a seguir
 mpl.scatter(xarr,yarr)
+mpl.scatter(xorg, yorg)
 mpl.show()
 
 class Robot():
@@ -169,6 +166,7 @@ if clientID!=-1:
         if (time.time()-t) > END: # Tiempo en el que debe terminar la trayectoria
             robot.stop() # Detenemos nuestro robot
             mpl.scatter(xt,yt)
+            mpl.scatter(xorg, yorg)
             mpl.show()
             
             break
