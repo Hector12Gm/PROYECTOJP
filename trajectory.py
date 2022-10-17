@@ -21,7 +21,7 @@ def Random(END):    #TrayectoriaRandom - Tiempo 300
 
     xnew = spi.splev(tnew, xc, der=0)
     ynew = spi.splev(tnew, yc, der=0)
-    return xnew, ynew
+    return xnew, ynew, xarr, yarr
 
 def squareORIGIN():
 

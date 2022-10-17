@@ -27,10 +27,14 @@ yt = []
 END = 300
 
 """Seleccion de trayectoria"""
-xarr, yarr = Traject.Random(END) # T = 300
+xarr, yarr, oxarr, oyarr = Traject.Random(END)  # T = 300
 #xarr, yarr = Traject.square()    # T = 80
 #xarr, yarr = Traject.SQUARE()    # T = 350
 #xarr, yarr = Traject.Diagonal()  # T = 50
+
+# Imprimimos la trayectoria sin interpolar los puntos
+mpl.scatter(oxarr,oyarr)
+mpl.show()
 
 # Imprimimos la trayectoria a seguir
 mpl.scatter(xarr,yarr)
