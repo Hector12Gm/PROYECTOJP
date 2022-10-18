@@ -7,8 +7,8 @@ import math as m
 import numpy as np
 import scipy.interpolate as spi
 
-def Random(END):    #TrayectoriaRandom - Tiempo 300 
-
+def Random():    #TrayectoriaRandom - Tiempo 300 
+    
     xarr = np.random.randint(-5, 5, 10)
     yarr = np.random.randint(-5, 5, 10)
 
@@ -18,15 +18,26 @@ def Random(END):    #TrayectoriaRandom - Tiempo 300
     xarrOrig = xarr
     yarrOrig = yarr
 
-    ttime = END
-    tarr = np.linspace(0, 10, xarr.shape[0])
-    
-    tnew = np.linspace(0, 10, 200)
+    tarr = np.linspace(0, 11, xarr.shape[0])
+    tnew = np.linspace(0, 11, 500)
+
+    """ Interpolador Pchip """""
+
+    pcix = spi.PchipInterpolator(tarr, xarr) 
+    pciy = spi.PchipInterpolator(tarr, yarr)
+
+    xnew = pcix(tnew)
+    ynew = pciy(tnew)
+
+    """""  Intrpolador Spline """"" """""
+
     xc = spi.splrep(tarr, xarr, s=0)
     yc = spi.splrep(tarr, yarr, s=0)
 
     xnew = spi.splev(tnew, xc, der=0)
     ynew = spi.splev(tnew, yc, der=0)
+
+    """""
     return xnew, ynew, xarrOrig, yarrOrig
 
 def squareORIGIN():
@@ -61,5 +72,3 @@ def Diagonal():
     yarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
     return xarr, yarr
 
-
-Random(300)

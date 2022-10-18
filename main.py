@@ -11,8 +11,8 @@ import scipy.interpolate as spi
 import trajectory as Traject
 
 t = time.time()
-Kv = 0.3 # 1    0.3
-Kh = 0.5 # 2.5  0.5
+Kv = 0.2 # 1    0.3
+Kh = 0.3 # 2.5  0.5
 r = 0.5*0.195
 L = 0.311
 noDetectionDist = 0.5
@@ -24,10 +24,10 @@ xt = []
 yt = [] 
 
 #Tiempo
-END = 400
+END = 450
 
-"""Seleccion de trayectoria"""
-xarr, yarr, xorg, yorg = Traject.Random(END)  # T = 400
+""" Seleccion de trayectoria """
+xarr, yarr, xorg, yorg = Traject.Random()  # T = 400
 #xarr, yarr = Traject.square()                # T = 80
 #xarr, yarr = Traject.SQUARE()                # T = 350
 #xarr, yarr = Traject.Diagonal()              # T = 50
@@ -82,16 +82,30 @@ class Robot():
 
         ttime =  END
         tarr = np.linspace(0, ttime, x.shape[0])
+
+        """ Interpolador Pchip """""
+
+        pcix = spi.PchipInterpolator(tarr, xarr) 
+        pciy = spi.PchipInterpolator(tarr, yarr)
+
+        xnew = pcix(tiempo)
+        ynew = pciy(tiempo)
+
+        """" Interpolador spline """ """""
+
         xc = spi.splrep(tarr, x, s=0)
         yc = spi.splrep(tarr, y, s=0)
 
-    
+        
         xnew = spi.splev(tiempo, xc, der=0)
         ynew = spi.splev(tiempo, yc, der=0)
+
+        """""
 
         return {'x':xnew,'y':ynew}
 
     def Trajectory(self):
+
         ts = time.time()
 
         ret, carpos = sim.simxGetObjectPosition(clientID, self.robot, -1, sim.simx_opmode_blocking)
@@ -156,7 +170,7 @@ if clientID!=-1:
     # Maquina de estados
     while True:
         for i in range (16):
-            while robot.getDistanceReading(i) <= 1: # Comprobamos si algun sensor detecta un objeto
+            while robot.getDistanceReading(i) <= 2: # Comprobamos si algun sensor detecta un objeto
                 vl, vr = robot.Braitenberg() # Obtenemos la velocidad necesaria para evadir el objeto
                 robot.Velocity(vl,vr)
                 print ("Evadiendo obstaculo")
