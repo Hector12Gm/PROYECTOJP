@@ -10,7 +10,7 @@ import numpy as np
 import scipy.interpolate as spi
 import trajectory as Traject
 
-t = time.time()
+
 Kv = 0.2 # 1    0.3
 Kh = 0.3 # 2.5  0.5
 r = 0.5*0.195
@@ -24,18 +24,16 @@ xt = []
 yt = [] 
 
 #Tiempo
-END = 450
+END = 400
 
 """ Seleccion de trayectoria """
-xarr, yarr, xorg, yorg = Traject.Random()  # T = 400
+xarr, yarr, xorg, yorg = Traject.Random()     # T = 400
 #xarr, yarr = Traject.square()                # T = 80
 #xarr, yarr = Traject.SQUARE()                # T = 350
 #xarr, yarr = Traject.Diagonal()              # T = 50
 
 # Imprimimos la trayectoria a seguir
-mpl.scatter(xarr,yarr)
-mpl.scatter(xorg, yorg)
-mpl.show()
+Traject.Grafica(xarr, yarr, xorg, yorg)
 
 class Robot():
 
@@ -83,13 +81,13 @@ class Robot():
         ttime =  END
         tarr = np.linspace(0, ttime, x.shape[0])
 
-        """ Interpolador Pchip """""
-
+        """ Interpolador Pchip """"" 
+    
         pcix = spi.PchipInterpolator(tarr, xarr) 
         pciy = spi.PchipInterpolator(tarr, yarr)
 
         xnew = pcix(tiempo)
-        ynew = pciy(tiempo)
+        ynew = pciy(tiempo) 
 
         """" Interpolador spline """ """""
 
@@ -167,26 +165,25 @@ if clientID!=-1:
     
     robot = Robot() 
 
+    t = time.time()
+
     # Maquina de estados
     while True:
         for i in range (16):
-            while robot.getDistanceReading(i) <= 2: # Comprobamos si algun sensor detecta un objeto
-                vl, vr = robot.Braitenberg() # Obtenemos la velocidad necesaria para evadir el objeto
+            while robot.getDistanceReading(i) <= 1:      # Comprobamos si algun sensor detecta un objeto
+                vl, vr = robot.Braitenberg()             # Obtenemos la velocidad necesaria para evadir el objeto
                 robot.Velocity(vl,vr)
                 print ("Evadiendo obstaculo")
-        robot.Trajectory() # El robot seguira la trayectoria hasta encontrar un objeto
+        robot.Trajectory()                               # El robot seguira la trayectoria hasta encontrar un objeto
         print ("Siguiendo Trayectoria")
              
-        if (time.time()-t) > END: # Tiempo en el que debe terminar la trayectoria
-            robot.stop() # Detenemos nuestro robot
-            mpl.scatter(xt,yt)
-            mpl.scatter(xorg, yorg)
-            mpl.show()
-            
+        if (time.time()-t) > END:                        # Tiempo en el que debe terminar la trayectoria
+            robot.stop()                                 # Detenemos nuestro robot
+            Traject.GrafOut(xt,yt,xorg,yorg)
             break
 
     
-    sim.simxGetPingTime(clientID) # Desconectamos del Remote Api para finalizar el programa
+    sim.simxGetPingTime(clientID)                        # Desconectamos del Remote Api para finalizar el programa
     sim.simxFinish(clientID)
 else:
     print ('Conexion fallida a remote API server')

@@ -6,6 +6,7 @@ import matplotlib.pyplot as mpl
 import math as m
 import numpy as np
 import scipy.interpolate as spi
+import matplotlib.pyplot as plt
 
 def Random():    #TrayectoriaRandom - Tiempo 300 
     
@@ -21,13 +22,13 @@ def Random():    #TrayectoriaRandom - Tiempo 300
     tarr = np.linspace(0, 11, xarr.shape[0])
     tnew = np.linspace(0, 11, 500)
 
-    """ Interpolador Pchip """""
+    """ Interpolador Pchip """"" 
 
     pcix = spi.PchipInterpolator(tarr, xarr) 
     pciy = spi.PchipInterpolator(tarr, yarr)
 
     xnew = pcix(tnew)
-    ynew = pciy(tnew)
+    ynew = pciy(tnew) 
 
     """""  Intrpolador Spline """"" """""
 
@@ -71,4 +72,24 @@ def Diagonal():
     xarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
     yarr = np.array([  -4,  -3.5,  -2.5,  -1.5,   -.5,  .5,  1.5,  2.5,   3.5,  4, 5])
     return xarr, yarr
+
+def Grafica(xarr, yarr, xorg, yorg):
+
+    mpl.scatter(xarr,yarr, label ='Trayectoria')
+    mpl.scatter(xorg, yorg, label = 'Puntos random')
+    mpl.title('Trayectoria a seguir')
+    mpl.xlabel('X')
+    mpl.ylabel('Y')
+    mpl.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+    mpl.show()
+
+def GrafOut(xarr, yarr, xorg, yorg):
+    
+    mpl.scatter(xarr,yarr, label ='Trayectoria seguida por el robot')
+    mpl.scatter(xorg, yorg, label = 'Puntos random')
+    mpl.title('Trayectoria conseguida')
+    mpl.xlabel('X')
+    mpl.ylabel('Y')
+    mpl.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+    mpl.show()
 
