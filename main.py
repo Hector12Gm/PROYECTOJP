@@ -1,5 +1,4 @@
 
-from queue import Empty
 import sim     
 import time
 import math
@@ -24,7 +23,7 @@ xt = []
 yt = [] 
 
 #Tiempo
-END = 400
+END = 450
 
 """ Seleccion de trayectoria """
 xarr, yarr, xorg, yorg = Traject.Random()     # T = 400
@@ -179,7 +178,7 @@ if clientID!=-1:
              
         if (time.time()-t) > END:                        # Tiempo en el que debe terminar la trayectoria
             robot.stop()                                 # Detenemos nuestro robot
-            Traject.GrafOut(xt,yt,xorg,yorg)
+            Traject.GrafOut(xt,yt,xorg,yorg)             # Imprimimos resultados
             break
 
     
