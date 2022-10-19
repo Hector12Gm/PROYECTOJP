@@ -12,7 +12,7 @@ Kv = 0.2 # 1    0.3
 Kh = 0.3 # 2.5  0.5
 
 #Tiempo
-END = 600
+END = 450
 
 """ Seleccion de trayectoria """
 xarr, yarr, xorg, yorg = Traject.Random()     # T = 300 - 600
@@ -118,6 +118,10 @@ class Robot():
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, ur, sim.simx_opmode_blocking)
         
     def Braitenberg (self):
+        
+        ret, carpos = sim.simxGetObjectPosition(clientID, self.robot, -1, sim.simx_opmode_blocking)
+        ret, carrot = sim.simxGetObjectOrientation(clientID, self.robot, -1, sim.simx_opmode_blocking)
+
         for i in range (16):
             err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_buffer)
             dist = np.linalg.norm(point) 
@@ -134,6 +138,9 @@ class Robot():
         for i in range (16):
             vLeft=vLeft+braitenbergL[i]*detect[i]
             vRight=vRight+braitenbergR[i]*detect[i]
+        
+        xt.append(carpos[0])
+        yt.append(carpos[1])
 
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, vLeft, sim.simx_opmode_blocking)
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, vRight, sim.simx_opmode_blocking)

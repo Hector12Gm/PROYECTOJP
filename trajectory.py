@@ -7,11 +7,11 @@ def Random():
 
 #TrayectoriaRandom  
     
-    xarr = np.random.randint(-7, 7, 10)
-    yarr = np.random.randint(-7, 7, 10)
+    xarr = np.random.randint(-6, 6, 10)
+    yarr = np.random.randint(-6, 6, 10)
 
-    xarr = np.insert(xarr, (0), [-4.7])
-    yarr = np.insert(yarr, (0), [-5.65])
+    xarr = np.insert(xarr, (0), [-5])
+    yarr = np.insert(yarr, (0), [-6])
 
     xarrOrig = xarr
     yarrOrig = yarr
