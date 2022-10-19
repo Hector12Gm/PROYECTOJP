@@ -1,3 +1,4 @@
+from random import random
 import sim     
 import time
 import math
@@ -10,8 +11,8 @@ import matplotlib.pyplot as plt
 
 def Random():    #TrayectoriaRandom - Tiempo 300 
     
-    xarr = np.random.randint(-5, 5, 10)
-    yarr = np.random.randint(-5, 5, 10)
+    xarr = np.random.randint(-7, 7, 10)
+    yarr = np.random.randint(-7, 7, 10)
 
     xarr = np.insert(xarr, (0), [-4.7])
     yarr = np.insert(yarr, (0), [-5.65])
@@ -77,19 +78,24 @@ def Grafica(xarr, yarr, xorg, yorg):
 
     mpl.scatter(xarr,yarr, label ='Trayectoria')
     mpl.scatter(xorg, yorg, label = 'Puntos random')
-    mpl.title('Trayectoria a seguir')
-    mpl.xlabel('X')
-    mpl.ylabel('Y')
-    mpl.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+    mpl.scatter(0,0, label = 'Centro', color = 'Red')
+    mpl.scatter(xarr[0],yarr[0], label = 'Punto inicial', color = 'black')
+    mpl.title('TRAYECTORIA A SEGUIR')
+    mpl.xlabel('X', loc = 'right')
+    mpl.ylabel('Y', loc = 'top')
+    mpl.legend(loc='upper center', bbox_to_anchor=(0.4, -0.05), fancybox=True, shadow=True, ncol=4)
     mpl.show()
 
 def GrafOut(xarr, yarr, xorg, yorg):
     
     mpl.scatter(xarr,yarr, label ='Trayectoria seguida por el robot')
     mpl.scatter(xorg, yorg, label = 'Puntos random')
-    mpl.title('Trayectoria conseguida')
-    mpl.xlabel('X')
-    mpl.ylabel('Y')
-    mpl.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=2)
+    mpl.scatter(0,0, label = 'Centro', color = 'red')
+    mpl.scatter(xarr[0],yarr[0], label = 'Punto inicial', color = 'black')
+    mpl.title('TRAYECTORIA CONSEGUIDA')
+    mpl.xlabel('X', loc = 'right')
+    mpl.ylabel('Y', loc = 'top')
+    mpl.legend(loc= 'upper center', bbox_to_anchor=(.4, -0.05), fancybox=True, shadow=True, ncol=4, fontsize = 'x-small')
     mpl.show()
+
 

@@ -9,27 +9,18 @@ import numpy as np
 import scipy.interpolate as spi
 import trajectory as Traject
 
-
 Kv = 0.2 # 1    0.3
 Kh = 0.3 # 2.5  0.5
-r = 0.5*0.195
-L = 0.311
-noDetectionDist = 0.5
-maxDetectionDist = 0.2
-detect = np.zeros(16)
-braitenbergL=[-0.2,-0.4,-0.6,-0.8,-1,-1.2,-1.4,-1.6, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-braitenbergR=[-1.6,-1.4,-1.2,-1,-0.8,-0.6,-0.4,-0.2, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-xt = []
-yt = [] 
 
 #Tiempo
-END = 450
+END = 600
 
 """ Seleccion de trayectoria """
 xarr, yarr, xorg, yorg = Traject.Random()     # T = 400
 #xarr, yarr = Traject.square()                # T = 80
 #xarr, yarr = Traject.SQUARE()                # T = 350
 #xarr, yarr = Traject.Diagonal()              # T = 50
+
 
 # Imprimimos la trayectoria a seguir
 Traject.Grafica(xarr, yarr, xorg, yorg)
@@ -75,23 +66,19 @@ class Robot():
         angdir = m.cos(t1)*m.sin(t2)-m.sin(t1)*m.cos(t2)
         return m.copysign(angmag, angdir)
 
-    def interp(self, tiempo,x,y):
+    def interp(self, tiempo):
 
-        ttime =  END
-        tarr = np.linspace(0, ttime, x.shape[0])
 
         """ Interpolador Pchip """"" 
-    
-        pcix = spi.PchipInterpolator(tarr, xarr) 
-        pciy = spi.PchipInterpolator(tarr, yarr)
 
         xnew = pcix(tiempo)
         ynew = pciy(tiempo) 
+        
 
         """" Interpolador spline """ """""
 
-        xc = spi.splrep(tarr, x, s=0)
-        yc = spi.splrep(tarr, y, s=0)
+        xc = spi.splrep(tarr, xarr, s=0)
+        yc = spi.splrep(tarr, yarr, s=0)
 
         
         xnew = spi.splev(tiempo, xc, der=0)
@@ -110,7 +97,7 @@ class Robot():
 
         tau = ts - t
 
-        data = self.interp(tau,xarr,yarr)
+        data = self.interp(tau)
         xd = data['x']
         yd = data['y']
 
@@ -131,10 +118,6 @@ class Robot():
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, ul, sim.simx_opmode_blocking)
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, ur, sim.simx_opmode_blocking)
         
-    def Velocity(self, leftMotorVelocity, rightMotorVelocity):
-        err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, leftMotorVelocity, sim.simx_opmode_blocking)
-        err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, rightMotorVelocity, sim.simx_opmode_blocking)
-
     def Braitenberg (self):
         for i in range (16):
             err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_buffer)
@@ -153,25 +136,43 @@ class Robot():
             vLeft=vLeft+braitenbergL[i]*detect[i]
             vRight=vRight+braitenbergR[i]*detect[i]
 
-        return vLeft, vRight
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, vLeft, sim.simx_opmode_blocking)
+        err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, vRight, sim.simx_opmode_blocking)
 
 print ('Programa Iniciado')
 sim.simxFinish(-1)
-clientID=sim.simxStart('127.0.0.1',-1,True,True,5000,5) # Conexión a CoppeliaSim
+clientID=sim.simxStart('127.0.0.1',-1,True,True,5000,5)  # Conexión a CoppeliaSim
 
 if clientID!=-1:
     print ('Conectados al remote API')
     
     robot = Robot() 
 
+    r = 0.5*0.195
+    L = 0.311
+
+    noDetectionDist = 0.5
+    maxDetectionDist = 0.2
+    detect = np.zeros(16)
+    braitenbergL=[-0.2,-0.4,-0.6,-0.8,-1,-1.2,-1.4,-1.6, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+    braitenbergR=[-1.6,-1.4,-1.2,-1,-0.8,-0.6,-0.4,-0.2, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+
+    xt = []
+    yt = []
+
+    ttime =  END
+
+    tarr = np.linspace(0, ttime, xarr.shape[0])
+    pcix = spi.PchipInterpolator(tarr, xarr) 
+    pciy = spi.PchipInterpolator(tarr, yarr)
+
     t = time.time()
 
     # Maquina de estados
     while True:
         for i in range (16):
-            while robot.getDistanceReading(i) <= 1:      # Comprobamos si algun sensor detecta un objeto
-                vl, vr = robot.Braitenberg()             # Obtenemos la velocidad necesaria para evadir el objeto
-                robot.Velocity(vl,vr)
+            while robot.getDistanceReading(i) <= 2.5:    # Comprobamos si algun sensor detecta un objeto
+                robot.Braitenberg()                      # Usamos la funcion Braitenberg para evadir objetos
                 print ("Evadiendo obstaculo")
         robot.Trajectory()                               # El robot seguira la trayectoria hasta encontrar un objeto
         print ("Siguiendo Trayectoria")
