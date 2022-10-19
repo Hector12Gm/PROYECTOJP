@@ -2,8 +2,7 @@
 import sim     
 import time
 import math
-import sys
-import matplotlib.pyplot as mpl   
+import sys 
 import math as m
 import numpy as np
 import scipy.interpolate as spi

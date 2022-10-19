@@ -1,15 +1,11 @@
-from random import random
-import sim     
-import time
-import math
-import sys
+
 import matplotlib.pyplot as mpl   
-import math as m
 import numpy as np
 import scipy.interpolate as spi
-import matplotlib.pyplot as plt
 
-def Random():    #TrayectoriaRandom - Tiempo 300 
+def Random():
+
+#TrayectoriaRandom  
     
     xarr = np.random.randint(-7, 7, 10)
     yarr = np.random.randint(-7, 7, 10)
