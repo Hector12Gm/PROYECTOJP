@@ -16,7 +16,7 @@ Kh = 0.3 # 2.5  0.5
 END = 600
 
 """ Seleccion de trayectoria """
-xarr, yarr, xorg, yorg = Traject.Random()     # T = 400
+xarr, yarr, xorg, yorg = Traject.Random()     # T = 300 - 600
 #xarr, yarr = Traject.square()                # T = 80
 #xarr, yarr = Traject.SQUARE()                # T = 350
 #xarr, yarr = Traject.Diagonal()              # T = 50
