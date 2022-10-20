@@ -54,6 +54,11 @@ class Robot():
             # Devuelve otro valor que sabemos que no puede ser verdadero
             return 199999
 
+    def Position (self):
+        ret, carpos = sim.simxGetObjectPosition(clientID, self.robot, -1, sim.simx_opmode_blocking)
+        ret, carrot = sim.simxGetObjectOrientation(clientID, self.robot, -1, sim.simx_opmode_blocking)
+        return carpos, carrot
+
     def stop(self):
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, 0, sim.simx_opmode_blocking)
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, 0, sim.simx_opmode_blocking)
@@ -91,8 +96,7 @@ class Robot():
 
         ts = time.time()
 
-        ret, carpos = sim.simxGetObjectPosition(clientID, self.robot, -1, sim.simx_opmode_blocking)
-        ret, carrot = sim.simxGetObjectOrientation(clientID, self.robot, -1, sim.simx_opmode_blocking)
+        carpos, carrot = self.Position() 
 
         tau = ts - t
 
@@ -119,13 +123,11 @@ class Robot():
         
     def Braitenberg (self):
         
-        ret, carpos = sim.simxGetObjectPosition(clientID, self.robot, -1, sim.simx_opmode_blocking)
-        ret, carrot = sim.simxGetObjectOrientation(clientID, self.robot, -1, sim.simx_opmode_blocking)
+        carpos = self.Position() 
 
         for i in range (16):
-            err, state, point, detectedObj, detectedSurfNormVec = sim.simxReadProximitySensor(clientID, self.usensor[i], sim.simx_opmode_buffer)
-            dist = np.linalg.norm(point) 
-            if state and dist<noDetectionDist:
+            dist = self.getDistanceReading(i) 
+            if dist<noDetectionDist:
                 if dist<maxDetectionDist:
                     dist=maxDetectionDist
                 detect[i]=1-((dist-maxDetectionDist)/(noDetectionDist-maxDetectionDist))
@@ -144,6 +146,8 @@ class Robot():
 
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_l, vLeft, sim.simx_opmode_blocking)
         err = sim.simxSetJointTargetVelocity(clientID, self.motor_r, vRight, sim.simx_opmode_blocking)
+
+    
 
 print ('Programa Iniciado')
 sim.simxFinish(-1)
@@ -174,8 +178,9 @@ if clientID!=-1:
 
     t = time.time()
 
-    # Maquina de estados
-    while True:
+    #                                        """ Ciclo de trabajo"""""
+
+    while (time.time()-t) < END:
         for i in range (16):
             while robot.getDistanceReading(i) <= 2.5:    # Comprobamos si algun sensor detecta un objeto
                 robot.Braitenberg()                      # Usamos la funcion Braitenberg para evadir objetos
@@ -183,10 +188,9 @@ if clientID!=-1:
         robot.Trajectory()                               # El robot seguira la trayectoria hasta encontrar un objeto
         print ("Siguiendo Trayectoria")
              
-        if (time.time()-t) > END:                        # Tiempo en el que debe terminar la trayectoria
-            robot.stop()                                 # Detenemos nuestro robot
-            Traject.GrafOut(xt,yt,xorg,yorg)             # Imprimimos resultados
-            break
+                            
+    robot.stop()                                         # Detenemos nuestro robot
+    Traject.GrafOut(xt,yt,xorg,yorg)                     # Imprimimos resultados
 
     
     sim.simxGetPingTime(clientID)                        # Desconectamos del Remote Api para finalizar el programa
